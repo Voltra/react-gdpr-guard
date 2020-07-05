@@ -59,5 +59,10 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "dependencies": {
+    "gdpr-guard": "^2.1.0",
+    "prop-types": "^15.7.2",
+    "react-use": "^15.3.2"
+  }
 }
