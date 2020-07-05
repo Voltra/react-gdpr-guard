@@ -1,8 +1,9 @@
 # react-gdpr-guard
 
-> Official React binding for gdpr-guard
+<center><img src="https://github.com/Voltra/react-gdpr-guard/blob/master/react-gdpr-guard.png" alt="Logo" width="250"/></center>
 
-[![NPM](https://img.shields.io/npm/v/react-gdpr-guard.svg)](https://www.npmjs.com/package/react-gdpr-guard) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+
+> Official React binding for gdpr-guard
 
 ## Install
 
