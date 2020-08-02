@@ -1,4 +1,10 @@
+.idea/
+.vscode/
+.brackets.json
+package-lock.json
+yarn.lock
 
+## autogen
 node_modules/
 build/
 dist/
