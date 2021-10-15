@@ -1,5 +1,5 @@
-import { GdprManager, GdprManagerFactory, GdprManagerRaw, GdprSaviorAdapter } from "gdpr-guard";
-import type { GdprSavior } from "gdpr-guard";
+import { GdprSaviorAdapter } from "gdpr-guard";
+import type { GdprSavior, GdprManager, GdprManagerFactory, GdprManagerRaw, } from "gdpr-guard";
 import type { ManagerWrapper } from "./ManagerWrapper";
 
 export class SaviorWrapper extends GdprSaviorAdapter {
