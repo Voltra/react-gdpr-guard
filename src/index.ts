@@ -1,54 +1,103 @@
-import type { GdprSavior, GdprGuardRaw, GdprStorage } from "gdpr-guard";
-import type { DependencyList } from "react";
+import type {
+	GdprSavior,
+	GdprGuardRaw,
+	GdprStorage,
+	GdprManagerFactory,
+	GdprGuardHooks,
+	UseGdpr,
+	UseSetupGdprEffect,
+	UseGdprComputed,
+	UseGdprGuard,
+	UseGdprGuardEnabledState,
+	UseGdprManager,
+	UseGdprSavior,
+} from "./typings.d";
+import { DependencyList, useRef, useCallback, useMemo, useEffect } from "react";
 
 import { GdprManager } from "gdpr-guard";
-import { useCallback, useMemo } from "react";
 import { ManagerWrapper } from "./ManagerWrapper";
 import { SaviorWrapper } from "./SaviorWrapper";
 
-const useFunction = <Fn extends (...args: any[]) => any>(fn: Fn): Fn => {
-	return useCallback(fn, []);
+const useFunction = <Fn extends (...args: any[]) => any>(
+	fn: Fn,
+	deps: DependencyList = [],
+): Fn => {
+	return useCallback(fn, deps);
 };
 
-export const createGdprGuardHooks = (savior: GdprSavior) => {
+const useEffectOnSecondRender = <Fn extends (...args: any[]) => any>(
+	fn: Fn,
+	deps: DependencyList = [],
+) => {
+	const didMount = useRef(false);
+
+	useEffect(() => {
+		if (didMount.current) {
+			return fn();
+		} else {
+			didMount.current = true;
+		}
+	}, [...deps, didMount.current]);
+};
+
+/**
+ * Create hooks for the gdpr-guard library based on the provided {@link GdprSavior}
+ * @param savior - The {@link GdprSavior} to wrap
+ * @returns The React hooks associated to that {@link GdprSavior}
+ */
+export const createGdprGuardHooks = (
+	savior: GdprSavior,
+	managerFactory: GdprManagerFactory,
+): GdprGuardHooks => {
+	// Use a dummy manager that'll be hotswap later after init
 	const dummyManager = GdprManager.create([]);
 	const managerWrapper = new ManagerWrapper(dummyManager);
 
 	const saviorWrapper = new SaviorWrapper(savior, managerWrapper);
 
-	const useGdprComputed = <T>(
-		compute: () => T,
-		deps: DependencyList = [],
-	): T => {
-		return useMemo(compute, [managerWrapper.materializedState, ...deps]);
-	};
-
-	const useGdprSavior = (): GdprSavior => saviorWrapper;
-
-	const useGdprManager = (): ManagerWrapper => managerWrapper;
-
-	const useGdprGuardEnabledState = (guardName: string) => {
-		return useGdprComputed(() => {
-			return managerWrapper.getGuard(guardName)?.enabled ?? false;
+	const useSetupGdprEffect: UseSetupGdprEffect = () => {
+		useEffectOnSecondRender(() => {
+			(async () => {
+				saviorWrapper.restoreOrCreate(managerFactory);
+			})();
 		});
 	};
 
-	const useGdprGuard = (guardName: string) => {
+	const useGdprComputed: UseGdprComputed = <T>(
+		factory: () => T,
+		deps: DependencyList = [],
+	): T => {
+		return useMemo(factory, [managerWrapper.materializedState, ...deps]);
+	};
+
+	const useGdprSavior: UseGdprSavior = (): GdprSavior => saviorWrapper;
+
+	const useGdprManager: UseGdprManager = (): ManagerWrapper => managerWrapper;
+
+	const useGdprGuardEnabledState: UseGdprGuardEnabledState = (
+		guardName: string,
+	) => {
+		return useGdprComputed(() => {
+			return managerWrapper.getGuard(guardName)?.enabled ?? false;
+		}, [guardName]);
+	};
+
+	const useGdprGuard: UseGdprGuard = (guardName: string) => {
 		const guard = useGdprComputed(() => {
 			return managerWrapper.getGuard(guardName)?.raw();
-		}) as GdprGuardRaw | null;
+		}, [guardName]) as GdprGuardRaw | null;
 
 		const enableGuard = useFunction(() => {
 			managerWrapper.enable(guardName);
-		});
+		}, [guardName]);
 
 		const disableGuard = useFunction(() => {
 			managerWrapper.disable(guardName);
-		});
+		}, [guardName]);
 
 		const toggleGuard = useFunction(() => {
 			managerWrapper.toggle(guardName);
-		});
+		}, [guardName]);
 
 		return {
 			guard,
@@ -58,7 +107,7 @@ export const createGdprGuardHooks = (savior: GdprSavior) => {
 		};
 	};
 
-	const useGdpr = () => {
+	const useGdpr: UseGdpr = () => {
 		// Manager
 		const manager = useGdprComputed(() => managerWrapper.materializedState);
 
@@ -123,6 +172,8 @@ export const createGdprGuardHooks = (savior: GdprSavior) => {
 	};
 
 	return {
+		useSetupGdprEffect,
+
 		useGdprSavior,
 		useGdprManager,
 		useGdprComputed,

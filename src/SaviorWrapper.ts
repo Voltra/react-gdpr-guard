@@ -1,5 +1,10 @@
 import { GdprSaviorAdapter } from "gdpr-guard";
-import type { GdprSavior, GdprManager, GdprManagerFactory, GdprManagerRaw, } from "gdpr-guard";
+import type {
+	GdprSavior,
+	GdprManager,
+	GdprManagerFactory,
+	GdprManagerRaw,
+} from "gdpr-guard";
 import type { ManagerWrapper } from "./ManagerWrapper";
 
 export class SaviorWrapper extends GdprSaviorAdapter {
@@ -11,10 +16,9 @@ export class SaviorWrapper extends GdprSaviorAdapter {
 	}
 
 	async updateSharedManager(manager: GdprManager): Promise<void> {
-		await this.savior.updateSharedManager(manager);
-
 		if (this.managerWrapper.manager === manager) return;
 
+		await this.savior.updateSharedManager(manager);
 		this.managerWrapper.hotswap(manager);
 	}
 
