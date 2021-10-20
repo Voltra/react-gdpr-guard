@@ -2,13 +2,11 @@ import type {
 	GdprManagerRaw,
 	GdprSavior,
 	GdprGuardRaw,
-	GdprGuard,
-	GdprManager,
 	GdprStorage,
 } from "gdpr-guard";
 import type { DependencyList } from "react";
+
 import type { ManagerWrapper } from "./ManagerWrapper";
-import type { SaviorWrapper } from "./SaviorWrapper";
 
 export * from "gdpr-guard";
 

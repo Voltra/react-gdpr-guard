@@ -1,3 +1,8 @@
+import { GdprManager } from "gdpr-guard";
+import { DependencyList, useRef, useCallback, useMemo, useEffect } from "react";
+
+import { ManagerWrapper } from "./ManagerWrapper";
+import { SaviorWrapper } from "./SaviorWrapper";
 import type {
 	GdprSavior,
 	GdprGuardRaw,
@@ -11,17 +16,13 @@ import type {
 	UseGdprGuardEnabledState,
 	UseGdprManager,
 	UseGdprSavior,
-} from "./typings.d";
-import { DependencyList, useRef, useCallback, useMemo, useEffect } from "react";
+} from "./typings";
 
-import { GdprManager } from "gdpr-guard";
-import { ManagerWrapper } from "./ManagerWrapper";
-import { SaviorWrapper } from "./SaviorWrapper";
-
-const useFunction = <Fn extends (...args: any[]) => any>(
+const useFunction = <Fn extends ((...args: any[]) => any)>(
 	fn: Fn,
 	deps: DependencyList = [],
 ): Fn => {
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	return useCallback(fn, deps);
 };
 
@@ -33,11 +34,12 @@ const useEffectOnSecondRender = <Fn extends (...args: any[]) => any>(
 
 	useEffect(() => {
 		if (didMount.current) {
-			return fn();
-		} else {
-			didMount.current = true;
+			fn();
 		}
-	}, [...deps, didMount.current]);
+			didMount.current = true;
+
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [...deps, fn, didMount]);
 };
 
 /**
@@ -56,18 +58,22 @@ export const createGdprGuardHooks = (
 	const saviorWrapper = new SaviorWrapper(savior, managerWrapper);
 
 	const useSetupGdprEffect: UseSetupGdprEffect = () => {
-		useEffectOnSecondRender(() => {
+		const executor = useFunction(() => {
 			(async () => {
 				saviorWrapper.restoreOrCreate(managerFactory);
 			})();
 		});
+
+		useEffectOnSecondRender(executor);
 	};
 
 	const useGdprComputed: UseGdprComputed = <T>(
 		factory: () => T,
 		deps: DependencyList = [],
 	): T => {
-		return useMemo(factory, [managerWrapper.materializedState, ...deps]);
+		const fn = useFunction(factory, deps);
+
+		return useMemo(fn, [managerWrapper.materializedState, fn]);
 	};
 
 	const useGdprSavior: UseGdprSavior = (): GdprSavior => saviorWrapper;

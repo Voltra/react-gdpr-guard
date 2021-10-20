@@ -5,6 +5,7 @@ import type {
 	GdprManagerFactory,
 	GdprManagerRaw,
 } from "gdpr-guard";
+
 import type { ManagerWrapper } from "./ManagerWrapper";
 
 export class SaviorWrapper extends GdprSaviorAdapter {
