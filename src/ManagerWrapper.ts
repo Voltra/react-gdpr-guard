@@ -5,6 +5,7 @@ import type {
 	GdprGuardGroup,
 	GdprStorage,
 } from "gdpr-guard";
+import { MethodNamesOf } from "./typings";
 
 export class ManagerWrapper {
 	protected state: GdprManagerRaw;
@@ -23,6 +24,20 @@ export class ManagerWrapper {
 
 	public triggerUpdate(): void {
 		this.state = this.generateRawManager();
+	}
+
+	public get bannerWasShown(): boolean {
+		return this.manager.bannerWasShown;
+	}
+
+	public closeBanner(): void {
+		this.manager.closeBanner();
+		this.triggerUpdate();
+	}
+
+	public resetAndShowBanner(): void {
+		this.manager.resetAndShowBanner();
+		this.triggerUpdate();
 	}
 
 	public json(): GdprManagerRaw {
@@ -91,7 +106,7 @@ export class ManagerWrapper {
 	}
 
 	protected wrap(
-		method: keyof GdprGuard,
+		method: MethodNamesOf<GdprGuard>,
 		target?: string,
 		...args: unknown[]
 	): this {
@@ -99,13 +114,15 @@ export class ManagerWrapper {
 			typeof target === "undefined" &&
 			typeof this.manager[method] === "function"
 		) {
-			this.manager[method](...args);
+			// False positive of TS2349
+			this.manager[method as unknown as string](...args);
 			this.triggerUpdate();
 		} else if (this.manager.hasGuard(target as string)) {
 			const guard = this.manager.getGuard(target as string);
 
 			if (typeof guard?.[method] === "function") {
-				guard?.[method](...args);
+				// False positive of TS2349
+				guard?.[method as unknown as string](...args);
 				this.triggerUpdate();
 			}
 		}

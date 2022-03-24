@@ -11,7 +11,7 @@ import type { ManagerWrapper } from "./ManagerWrapper";
 export class SaviorWrapper extends GdprSaviorAdapter {
 	constructor(
 		protected savior: GdprSavior,
-		protected managerWrapper: ManagerWrapper,
+		protected managerWrapper: ManagerWrapper
 	) {
 		super();
 	}

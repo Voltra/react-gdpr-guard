@@ -1,4 +1,5 @@
 import { GdprManager } from "gdpr-guard";
+import { GdprManagerEventHub } from "gdpr-guard/dist/GdprManagerEventHub";
 import { DependencyList, useRef, useCallback, useMemo, useEffect } from "react";
 
 import { ManagerWrapper } from "./ManagerWrapper";
@@ -16,11 +17,12 @@ import type {
 	UseGdprGuardEnabledState,
 	UseGdprManager,
 	UseGdprSavior,
+	UseAttachGdprListenersEffect,
 } from "./typings";
 
-const useFunction = <Fn extends ((...args: any[]) => any)>(
+const useFunction = <Fn extends (...args: any[]) => any>(
 	fn: Fn,
-	deps: DependencyList = [],
+	deps: DependencyList = []
 ): Fn => {
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	return useCallback(fn, deps);
@@ -28,7 +30,7 @@ const useFunction = <Fn extends ((...args: any[]) => any)>(
 
 const useEffectOnSecondRender = <Fn extends (...args: any[]) => any>(
 	fn: Fn,
-	deps: DependencyList = [],
+	deps: DependencyList = []
 ) => {
 	const didMount = useRef(false);
 
@@ -36,20 +38,21 @@ const useEffectOnSecondRender = <Fn extends (...args: any[]) => any>(
 		if (didMount.current) {
 			fn();
 		}
-			didMount.current = true;
+		didMount.current = true;
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [...deps, fn, didMount]);
 };
 
 /**
  * Create hooks for the gdpr-guard library based on the provided {@link GdprSavior}
  * @param savior - The {@link GdprSavior} to wrap
+ * @param managerFactory - A factory to the latest version of your {@link GdprManager}
  * @returns The React hooks associated to that {@link GdprSavior}
  */
 export const createGdprGuardHooks = (
 	savior: GdprSavior,
-	managerFactory: GdprManagerFactory,
+	managerFactory: GdprManagerFactory
 ): GdprGuardHooks => {
 	// Use a dummy manager that'll be hotswap later after init
 	const dummyManager = GdprManager.create([]);
@@ -58,18 +61,25 @@ export const createGdprGuardHooks = (
 	const saviorWrapper = new SaviorWrapper(savior, managerWrapper);
 
 	const useSetupGdprEffect: UseSetupGdprEffect = () => {
-		const executor = useFunction(() => {
+		const restoreManagerOnBoot = useFunction(() => {
 			(async () => {
-				saviorWrapper.restoreOrCreate(managerFactory);
+				await saviorWrapper.restoreOrCreate(managerFactory);
 			})();
 		});
 
-		useEffectOnSecondRender(executor);
+		useEffectOnSecondRender(restoreManagerOnBoot);
+
+		// Auto-close
+		useEffect(() => {
+			if (managerWrapper.bannerWasShown) {
+				managerWrapper.closeBanner();
+			}
+		}, [managerWrapper.manager]);
 	};
 
 	const useGdprComputed: UseGdprComputed = <T>(
 		factory: () => T,
-		deps: DependencyList = [],
+		deps: DependencyList = []
 	): T => {
 		const fn = useFunction(factory, deps);
 
@@ -80,8 +90,19 @@ export const createGdprGuardHooks = (
 
 	const useGdprManager: UseGdprManager = (): ManagerWrapper => managerWrapper;
 
+	const useAttachGdprListenersEffect: UseAttachGdprListenersEffect = (
+		callback: (eventHub: GdprManagerEventHub) => void
+	) => {
+		const manager = useGdprManager();
+
+		useEffect(() => {
+			const { events } = manager.manager;
+			callback(events);
+		}, [callback, manager.manager]);
+	};
+
 	const useGdprGuardEnabledState: UseGdprGuardEnabledState = (
-		guardName: string,
+		guardName: string
 	) => {
 		return useGdprComputed(() => {
 			return managerWrapper.getGuard(guardName)?.enabled ?? false;
@@ -159,7 +180,17 @@ export const createGdprGuardHooks = (
 			managerWrapper.toggleForStorage(storage);
 		});
 
+		const closeGdprBanner = useFunction(() => managerWrapper.closeBanner());
+		const resetAndShowBanner = useFunction(() =>
+			managerWrapper.resetAndShowBanner()
+		);
+		const bannerWasShown = useFunction(() => managerWrapper.bannerWasShown);
+
 		return {
+			// Meta
+			closeGdprBanner,
+			resetAndShowBanner,
+			bannerWasShown,
 			// Manager
 			manager,
 			enableManager,
@@ -179,6 +210,7 @@ export const createGdprGuardHooks = (
 
 	return {
 		useSetupGdprEffect,
+		useAttachGdprListenersEffect,
 
 		useGdprSavior,
 		useGdprManager,

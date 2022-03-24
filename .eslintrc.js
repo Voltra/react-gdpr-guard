@@ -21,12 +21,11 @@ module.exports = {
 		"plugin:react-perf/recommended",
 		"standard",
 		"standard-react",
-		"prettier/standard",
-		"prettier/react",
+		"prettier",
 		"plugin:@typescript-eslint/eslint-recommended",
 	],
 	parserOptions: {
-		ecmaVersion: 2020,
+		ecmaVersion: 2022,
 		ecmaFeatures: {
 			legacyDecorators: true,
 			jsx: true,

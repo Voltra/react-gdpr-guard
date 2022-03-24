@@ -4,13 +4,24 @@ import type {
 	GdprGuardRaw,
 	GdprStorage,
 } from "gdpr-guard";
+import type { GdprManagerEventHub } from "gdpr-guard/dist/GdprManagerEventHub";
 import type { DependencyList } from "react";
 
 import type { ManagerWrapper } from "./ManagerWrapper";
 
 export * from "gdpr-guard";
 
+export type MethodsOf<Class> = {
+	[K in keyof Class]: K extends (...args: any) => any ? Class[K] : never;
+};
+
+export type MethodNamesOf<Class> = keyof MethodsOf<Class>;
+
 export type UseSetupGdprEffect = () => void;
+
+export type UseAttachGdprListenersEffect = (
+	callback: (eventHub: GdprManagerEventHub) => void
+) => void;
 
 export type UseGdprComputed = <T>(factory: () => T, deps?: DependencyList) => T;
 
@@ -45,6 +56,21 @@ export interface UseGdprGuardResult {
 export type UseGdprGuard = (guardName: string) => UseGdprGuardResult;
 
 export interface UseGdprResult {
+	/**
+	 * Close the GDPR banner and trigger enable/disable event listeners
+	 */
+	closeGdprBanner: () => void;
+
+	/**
+	 * Reset the shown state of the GDPR banner
+	 */
+	resetAndShowBanner: () => void;
+
+	/**
+	 * Determine whether the GDPR banner has already been shown to the user
+	 */
+	bannerWasShown: () => boolean;
+
 	/**
 	 * The current raw state of the {@link GdprManager}
 	 */
@@ -123,6 +149,11 @@ export interface GdprGuardHooks {
 	 * Hook to have access to the manager (or more accurately the {@link ManagerWrapper}) from anywhere
 	 */
 	useGdprManager: UseGdprManager;
+
+	/**
+	 * Hook to attach enable/disable listeners to the manager's {@link GdprManagerEventHub}
+	 */
+	useAttachGdprListenersEffect: UseAttachGdprListenersEffect;
 
 	/**
 	 * Hook to get the enabled state of a given {@link GdprGuard}
