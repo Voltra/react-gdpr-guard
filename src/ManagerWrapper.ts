@@ -5,7 +5,9 @@ import type {
 	GdprGuardGroup,
 	GdprStorage,
 } from "gdpr-guard";
-import { MethodNamesOf } from "./typings";
+import type { GdprManagerEventHub } from "gdpr-guard/dist/GdprManagerEventHub";
+
+import type { MethodNamesOf } from "./typings";
 
 export class ManagerWrapper {
 	protected state: GdprManagerRaw;
@@ -28,6 +30,10 @@ export class ManagerWrapper {
 
 	public get bannerWasShown(): boolean {
 		return this.manager.bannerWasShown;
+	}
+
+	public get events(): GdprManagerEventHub {
+		return this.manager.events;
 	}
 
 	public closeBanner(): void {

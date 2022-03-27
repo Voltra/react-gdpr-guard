@@ -102,11 +102,19 @@ export const createGdprGuardHooks = (
 	};
 
 	const useGdprGuardEnabledState: UseGdprGuardEnabledState = (
-		guardName: string
+		guardName: string,
+		useBannerStatus: boolean = false
 	) => {
 		return useGdprComputed(() => {
-			return managerWrapper.getGuard(guardName)?.enabled ?? false;
-		}, [guardName]);
+			const bannerWasShown = useBannerStatus
+				? managerWrapper.bannerWasShown
+				: true;
+
+			return (
+				bannerWasShown &&
+				(managerWrapper.getGuard(guardName)?.enabled ?? false)
+			);
+		}, [guardName, managerWrapper.bannerWasShown]);
 	};
 
 	const useGdprGuard: UseGdprGuard = (guardName: string) => {
@@ -163,9 +171,14 @@ export const createGdprGuardHooks = (
 			managerWrapper.toggle(guardName);
 		});
 
-		const guardIsEnabled = useFunction((guardName: string) => {
-			return managerWrapper.isEnabled(guardName);
-		});
+		const guardIsEnabled = useFunction(
+			(guardName: string, useBannerStatus: boolean = false) => {
+				const bannerWasShown = useBannerStatus
+					? managerWrapper.bannerWasShown
+					: true;
+				return bannerWasShown && managerWrapper.isEnabled(guardName);
+			}
+		);
 
 		// Storage
 		const enableForStorage = useFunction((storage: GdprStorage) => {
@@ -184,7 +197,9 @@ export const createGdprGuardHooks = (
 		const resetAndShowBanner = useFunction(() =>
 			managerWrapper.resetAndShowBanner()
 		);
-		const bannerWasShown = useFunction(() => managerWrapper.bannerWasShown);
+		const bannerWasShown = useGdprComputed(
+			() => managerWrapper.bannerWasShown
+		);
 
 		return {
 			// Meta

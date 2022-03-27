@@ -29,7 +29,10 @@ export type UseGdprSavior = () => GdprSavior;
 
 export type UseGdprManager = () => ManagerWrapper;
 
-export type UseGdprGuardEnabledState = (guardName: string) => boolean;
+export type UseGdprGuardEnabledState = (
+	guardName: string,
+	useBannerStatus?: boolean
+) => boolean;
 
 export interface UseGdprGuardResult {
 	/**
@@ -69,7 +72,7 @@ export interface UseGdprResult {
 	/**
 	 * Determine whether the GDPR banner has already been shown to the user
 	 */
-	bannerWasShown: () => boolean;
+	bannerWasShown: boolean;
 
 	/**
 	 * The current raw state of the {@link GdprManager}
@@ -109,7 +112,7 @@ export interface UseGdprResult {
 	/**
 	 * Determine whether or not the {@link GdprGuard} that has the given guard name is currently enabled
 	 */
-	guardIsEnabled: (guardName: string) => boolean;
+	guardIsEnabled: (guardName: string, useBannerStatus?: boolean) => boolean;
 
 	/**
 	 * Enable all {@link GdprGuard}s of this {@link GdprManager} that have the given {@link GdprStorage}
