@@ -1,4 +1,5 @@
 docs/
 docs-src/
 src/
+tests/
 *.png

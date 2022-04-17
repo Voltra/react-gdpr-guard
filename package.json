@@ -21,6 +21,7 @@
 	"source": "src/index.ts",
 	"main": "dist/index.js",
 	"module": "dist/index.modern.js",
+	"types": "dist/index.d.ts",
 	"engines": {
 		"node": ">=10"
 	},
@@ -39,7 +40,7 @@
 		"deploy:docs": "gh-pages -d docs"
 	},
 	"peerDependencies": {
-		"react": "^16.0.0"
+		"react": "^16.0.0 || ^17.0.0"
 	},
 	"devDependencies": {
 		"@testing-library/jest-dom": "^5.14.1",
