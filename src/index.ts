@@ -1,3 +1,9 @@
+import { GdprManager } from "gdpr-guard";
+import { GdprManagerEventHub } from "gdpr-guard/dist/GdprManagerEventHub";
+import { DependencyList, useRef, useCallback, useMemo, useEffect } from "react";
+
+import { ManagerWrapper } from "./ManagerWrapper";
+import { SaviorWrapper } from "./SaviorWrapper";
 import type {
 	GdprSavior,
 	GdprGuardRaw,
@@ -11,43 +17,42 @@ import type {
 	UseGdprGuardEnabledState,
 	UseGdprManager,
 	UseGdprSavior,
-} from "./typings.d";
-import { DependencyList, useRef, useCallback, useMemo, useEffect } from "react";
-
-import { GdprManager } from "gdpr-guard";
-import { ManagerWrapper } from "./ManagerWrapper";
-import { SaviorWrapper } from "./SaviorWrapper";
+	UseAttachGdprListenersEffect,
+} from "./typings";
 
 const useFunction = <Fn extends (...args: any[]) => any>(
 	fn: Fn,
-	deps: DependencyList = [],
+	deps: DependencyList = []
 ): Fn => {
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	return useCallback(fn, deps);
 };
 
 const useEffectOnSecondRender = <Fn extends (...args: any[]) => any>(
 	fn: Fn,
-	deps: DependencyList = [],
+	deps: DependencyList = []
 ) => {
 	const didMount = useRef(false);
 
 	useEffect(() => {
 		if (didMount.current) {
-			return fn();
-		} else {
-			didMount.current = true;
+			fn();
 		}
-	}, [...deps, didMount.current]);
+		didMount.current = true;
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [...deps, fn, didMount]);
 };
 
 /**
  * Create hooks for the gdpr-guard library based on the provided {@link GdprSavior}
  * @param savior - The {@link GdprSavior} to wrap
+ * @param managerFactory - A factory to the latest version of your {@link GdprManager}
  * @returns The React hooks associated to that {@link GdprSavior}
  */
 export const createGdprGuardHooks = (
 	savior: GdprSavior,
-	managerFactory: GdprManagerFactory,
+	managerFactory: GdprManagerFactory
 ): GdprGuardHooks => {
 	// Use a dummy manager that'll be hotswap later after init
 	const dummyManager = GdprManager.create([]);
@@ -56,30 +61,60 @@ export const createGdprGuardHooks = (
 	const saviorWrapper = new SaviorWrapper(savior, managerWrapper);
 
 	const useSetupGdprEffect: UseSetupGdprEffect = () => {
-		useEffectOnSecondRender(() => {
+		const restoreManagerOnBoot = useFunction(() => {
 			(async () => {
-				saviorWrapper.restoreOrCreate(managerFactory);
+				await saviorWrapper.restoreOrCreate(managerFactory);
 			})();
 		});
+
+		useEffectOnSecondRender(restoreManagerOnBoot);
+
+		// Auto-close
+		useEffect(() => {
+			if (managerWrapper.bannerWasShown) {
+				managerWrapper.closeBanner();
+			}
+		}, [managerWrapper.manager]);
 	};
 
 	const useGdprComputed: UseGdprComputed = <T>(
 		factory: () => T,
-		deps: DependencyList = [],
+		deps: DependencyList = []
 	): T => {
-		return useMemo(factory, [managerWrapper.materializedState, ...deps]);
+		const fn = useFunction(factory, deps);
+
+		return useMemo(fn, [managerWrapper.materializedState, fn]);
 	};
 
 	const useGdprSavior: UseGdprSavior = (): GdprSavior => saviorWrapper;
 
 	const useGdprManager: UseGdprManager = (): ManagerWrapper => managerWrapper;
 
+	const useAttachGdprListenersEffect: UseAttachGdprListenersEffect = (
+		callback: (eventHub: GdprManagerEventHub) => void
+	) => {
+		const manager = useGdprManager();
+
+		useEffect(() => {
+			const { events } = manager.manager;
+			callback(events);
+		}, [callback, manager.manager]);
+	};
+
 	const useGdprGuardEnabledState: UseGdprGuardEnabledState = (
 		guardName: string,
+		useBannerStatus: boolean = false
 	) => {
 		return useGdprComputed(() => {
-			return managerWrapper.getGuard(guardName)?.enabled ?? false;
-		}, [guardName]);
+			const bannerWasShown = useBannerStatus
+				? managerWrapper.bannerWasShown
+				: true;
+
+			return (
+				bannerWasShown &&
+				(managerWrapper.getGuard(guardName)?.enabled ?? false)
+			);
+		}, [guardName, managerWrapper.bannerWasShown]);
 	};
 
 	const useGdprGuard: UseGdprGuard = (guardName: string) => {
@@ -136,9 +171,14 @@ export const createGdprGuardHooks = (
 			managerWrapper.toggle(guardName);
 		});
 
-		const guardIsEnabled = useFunction((guardName: string) => {
-			return managerWrapper.isEnabled(guardName);
-		});
+		const guardIsEnabled = useFunction(
+			(guardName: string, useBannerStatus: boolean = false) => {
+				const bannerWasShown = useBannerStatus
+					? managerWrapper.bannerWasShown
+					: true;
+				return bannerWasShown && managerWrapper.isEnabled(guardName);
+			}
+		);
 
 		// Storage
 		const enableForStorage = useFunction((storage: GdprStorage) => {
@@ -153,7 +193,19 @@ export const createGdprGuardHooks = (
 			managerWrapper.toggleForStorage(storage);
 		});
 
+		const closeGdprBanner = useFunction(() => managerWrapper.closeBanner());
+		const resetAndShowBanner = useFunction(() =>
+			managerWrapper.resetAndShowBanner()
+		);
+		const bannerWasShown = useGdprComputed(
+			() => managerWrapper.bannerWasShown
+		);
+
 		return {
+			// Meta
+			closeGdprBanner,
+			resetAndShowBanner,
+			bannerWasShown,
 			// Manager
 			manager,
 			enableManager,
@@ -173,6 +225,7 @@ export const createGdprGuardHooks = (
 
 	return {
 		useSetupGdprEffect,
+		useAttachGdprListenersEffect,
 
 		useGdprSavior,
 		useGdprManager,

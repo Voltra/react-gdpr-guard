@@ -3,6 +3,7 @@
 .brackets.json
 package-lock.json
 yarn.lock
+docs/
 
 ## autogen
 node_modules/
