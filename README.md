@@ -8,6 +8,8 @@
 `react-gdpr-guard` acts like a meta-hook library: it exposes a single hook that you can use outside of your React app
 to create hooks that you will later use in that react app.
 
+//TODO: Example project
+
 ## Before using the library
 
 You must know about the `gdpr-guard` library and how it works.

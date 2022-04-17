@@ -18,14 +18,14 @@
 	"license": "MIT",
 	"repository": "Voltra/react-gdpr-guard",
 	"homepage": "https://voltra.github.io/react-gdpr-guard",
+	"source": "src/index.ts",
 	"main": "dist/index.js",
 	"module": "dist/index.modern.js",
-	"source": "src/index.tsx",
 	"engines": {
 		"node": ">=10"
 	},
 	"scripts": {
-		"build": "microbundle-crl --no-compress --format modern,cjs,umd --name reactGdprGuard",
+		"build": "microbundle-crl --format modern,cjs,umd --name reactGdprGuard",
 		"start": "microbundle-crl watch --no-compress --format modern,cjs,umd --name reactGdprGuard",
 		"prepare": "run-s build",
 		"test": "run-s test:unit test:lint test:build",

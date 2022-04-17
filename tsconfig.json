@@ -12,8 +12,8 @@
 	"strict": true,
     "suppressImplicitAnyIndexErrors": true,
     "allowSyntheticDefaultImports": true,
-	"allowJs": true
+	"allowJs": false
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "example"]
+  "exclude": ["node_modules", "dist", "example", "**/*.test.ts"]
 }
