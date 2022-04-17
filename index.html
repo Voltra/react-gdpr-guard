@@ -1,0 +1,216 @@
+<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>react-gdpr-guard - v1.0.0</title><meta name="description" content="Documentation for react-gdpr-guard - v1.0.0"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">react-gdpr-guard - v1.0.0</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1> react-gdpr-guard - v1.0.0</h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
+<a href="#react-gdpr-guard" id="react-gdpr-guard" style="color: inherit; text-decoration: none;">
+  <h1>react-gdpr-guard</h1>
+</a>
+<center><img src="https://github.com/Voltra/react-gdpr-guard/blob/master/react-gdpr-guard.png" alt="Logo" width="250"/></center>
+
+
+<blockquote>
+<p>Official React binding for gdpr-guard</p>
+</blockquote>
+<p><code>react-gdpr-guard</code> acts like a meta-hook library: it exposes a single hook that you can use outside of your React app
+to create hooks that you will later use in that react app.</p>
+<p>//TODO: Example project</p>
+
+<a href="#before-using-the-library" id="before-using-the-library" style="color: inherit; text-decoration: none;">
+  <h2>Before using the library</h2>
+</a>
+<p>You must know about the <code>gdpr-guard</code> library and how it works.</p>
+<p>Here are a few links to get up to speed:</p>
+<ul>
+<li><a href="https://github.com/Voltra/gdpr-guard">Github Repo</a></li>
+<li><a href="https://www.npmjs.com/package/gdpr-guard">NPM Package</a></li>
+<li><a href="https://voltra.github.io//gdpr-guard/">Docs</a></li>
+</ul>
+
+<a href="#setup-the-library" id="setup-the-library" style="color: inherit; text-decoration: none;">
+  <h2>Setup the library</h2>
+</a>
+<p>In a separate file, let&#39;s say a <code>hooks/gdpr.js</code> for instance, you can create your hooks alongside your <code>GdprSavior</code> and manager factory:</p>
+<pre><code class="language-javascript"><span class="hl-0">// src/hooks/gdpr.js</span><br/><br/><span class="hl-1">const</span><span class="hl-2"> </span><span class="hl-3">managerFactory</span><span class="hl-2"> = () </span><span class="hl-1">=&gt;</span><span class="hl-2"> {</span><br/><span class="hl-2">    </span><span class="hl-4">return</span><span class="hl-2"> </span><span class="hl-5">GdprManagerBuilder</span><span class="hl-2">.</span><span class="hl-3">make</span><span class="hl-2">()</span><br/><span class="hl-2">        </span><span class="hl-0">/* [...] */</span><br/><span class="hl-2">        .</span><span class="hl-3">build</span><span class="hl-2">();</span><br/><span class="hl-2">};</span><br/><span class="hl-1">const</span><span class="hl-2"> </span><span class="hl-6">savior</span><span class="hl-2"> = </span><span class="hl-1">new</span><span class="hl-2"> </span><span class="hl-3">MyGdprSavior</span><span class="hl-2">();</span><br/><br/><span class="hl-4">export</span><span class="hl-2"> </span><span class="hl-1">const</span><span class="hl-2"> {</span><br/><span class="hl-2">    </span><span class="hl-6">useSetupGdprEffect</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">useAttachGdprListenersEffect</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">useGdprManager</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">useGdprSavior</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">useGdpr</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">useGdprComputed</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">useGdprGuard</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">useGdprGuardEnabledState</span><span class="hl-2">,</span><br/><span class="hl-2">} = </span><span class="hl-3">createGdprGuardHooks</span><span class="hl-2">(</span><span class="hl-5">savior</span><span class="hl-2">, </span><span class="hl-5">managerFactory</span><span class="hl-2">);</span>
+</code></pre>
+<p>Then, in your main component, you can attach the setup hook and the listeners hook:</p>
+<pre><code class="language-javascript"><span class="hl-0">// src/App.jsx</span><br/><br/><span class="hl-4">import</span><span class="hl-2"> {</span><br/><span class="hl-2">    </span><span class="hl-5">useSetupGdprEffect</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-5">useAttachGdprListenersEffect</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-5">useGdpr</span><span class="hl-2">,</span><br/><span class="hl-2">} </span><span class="hl-4">from</span><span class="hl-2"> </span><span class="hl-7">&quot;./hooks/gdpr.js&quot;</span><span class="hl-2">;</span><br/><br/><span class="hl-4">import</span><span class="hl-2"> </span><span class="hl-5">MyGdprBanner</span><span class="hl-2"> </span><span class="hl-4">from</span><span class="hl-2"> </span><span class="hl-7">&quot;./components/MyGdprBanner&quot;</span><span class="hl-2">;</span><br/><span class="hl-4">import</span><span class="hl-2"> </span><span class="hl-5">MyGdprSettingsOpener</span><span class="hl-2"> </span><span class="hl-4">from</span><span class="hl-2"> </span><span class="hl-7">&quot;./components/MyGdprSettingsOpener&quot;</span><span class="hl-2">;</span><br/><br/><span class="hl-4">export</span><span class="hl-2"> </span><span class="hl-4">default</span><span class="hl-2"> </span><span class="hl-1">function</span><span class="hl-2"> </span><span class="hl-3">App</span><span class="hl-2">() {</span><br/><span class="hl-2">    </span><span class="hl-1">const</span><span class="hl-2"> {</span><br/><span class="hl-2">        </span><span class="hl-6">bannerWasShown</span><span class="hl-2">,</span><br/><span class="hl-2">        </span><span class="hl-6">closeGdprBanner</span><span class="hl-2">,</span><br/><span class="hl-2">        </span><span class="hl-6">resetAndShowBanner</span><span class="hl-2">,</span><br/><span class="hl-2">    } = </span><span class="hl-3">useGdpr</span><span class="hl-2">();</span><br/><br/><span class="hl-2">    </span><span class="hl-0">// Bootstrap the library</span><br/><span class="hl-2">    </span><span class="hl-3">useSetupGdprEffect</span><span class="hl-2">();</span><br/><br/><span class="hl-2">    </span><span class="hl-0">// Attach events</span><br/><span class="hl-2">    </span><span class="hl-3">useAttachGdprListenersEffect</span><span class="hl-2">(</span><span class="hl-5">eventHub</span><span class="hl-2"> </span><span class="hl-1">=&gt;</span><span class="hl-2"> {</span><br/><span class="hl-2">        </span><span class="hl-5">eventHub</span><span class="hl-2">.</span><span class="hl-3">onEnable</span><span class="hl-2">(</span><span class="hl-7">&quot;_ga&quot;</span><span class="hl-2">, () </span><span class="hl-1">=&gt;</span><span class="hl-2"> {</span><br/><span class="hl-2">            </span><span class="hl-0">// Load all Analytics scripts here</span><br/><span class="hl-2">        });</span><br/><br/><span class="hl-2">        </span><span class="hl-5">eventHub</span><span class="hl-2">.</span><span class="hl-3">onDisable</span><span class="hl-2">(</span><span class="hl-7">&quot;myIntrusive3rdPartyStuff&quot;</span><span class="hl-2">, () </span><span class="hl-1">=&gt;</span><span class="hl-2"> {</span><br/><span class="hl-2">            </span><span class="hl-0">// Disable everything from the intrusive 3rd-party lib</span><br/><span class="hl-2">        });</span><br/><span class="hl-2">    });</span><br/><br/><span class="hl-2">    </span><span class="hl-0">// The rest of your component logic</span><br/><span class="hl-2">    </span><span class="hl-4">return</span><span class="hl-2"> (</span><br/><span class="hl-2">        </span><span class="hl-8">&lt;&gt;</span><br/><span class="hl-2">            </span><span class="hl-8">&lt;</span><span class="hl-9">MyGdprSettingsOpener</span><span class="hl-2"> </span><span class="hl-10">onClick</span><span class="hl-2">=</span><span class="hl-1">{</span><span class="hl-5">resetAndShowBanner</span><span class="hl-1">}</span><span class="hl-8">/&gt;</span><br/><span class="hl-2">            </span><span class="hl-1">{</span><span class="hl-2">!</span><span class="hl-5">bannerWasShown</span><span class="hl-11"> </span><span class="hl-2">&amp;&amp;</span><span class="hl-11"> </span><span class="hl-8">&lt;</span><span class="hl-9">MyGdprBanner</span><span class="hl-11"> </span><span class="hl-10">onClose</span><span class="hl-2">=</span><span class="hl-1">{</span><span class="hl-5">closeGdprBanner</span><span class="hl-1">}</span><span class="hl-11"> </span><span class="hl-8">/&gt;</span><span class="hl-1">}</span><br/><span class="hl-2">            </span><span class="hl-1">{</span><span class="hl-0">/* The rest of your component&#39;s UI */</span><span class="hl-1">}</span><br/><span class="hl-2">        </span><span class="hl-8">&lt;/&gt;</span><br/><span class="hl-2">    );</span><br/><span class="hl-2">}</span>
+</code></pre>
+
+<a href="#uiux-component-recommendations" id="uiux-component-recommendations" style="color: inherit; text-decoration: none;">
+  <h2>UI/UX component recommendations</h2>
+</a>
+<p>Default values must be chosen carefully and with the user&#39;s experience in mind.
+For instance: if geolocation is optional, disable it by default.</p>
+<p>After the user changes their settings, saving them using the Savior API is recommended.</p>
+
+<a href="#gdpr-settings-opener" id="gdpr-settings-opener" style="color: inherit; text-decoration: none;">
+  <h3>GDPR settings opener</h3>
+</a>
+<p>A tiny button or link that, when clicked, calls the <code>resetAndShowBanner</code> so that the GDPR settings UI may be opened again.</p>
+
+<a href="#gdpr-banner" id="gdpr-banner" style="color: inherit; text-decoration: none;">
+  <h3>GDPR banner</h3>
+</a>
+<p>A banner, a modal or whatever prevents users from using your website without first interacting with it.</p>
+<p>It should display at the very least 4 buttons:</p>
+<ul>
+<li>&quot;Accept all&quot; which calls <code>enableManager</code> and then <code>closeBanner</code></li>
+<li>&quot;Deny all&quot; which calls <code>disableManager</code> and then <code>closeBanner</code></li>
+<li>&quot;Accept current settings&quot; which just calls <code>closeBanner</code></li>
+<li>&quot;Modify settings&quot; which opens your GDPR settings UI</li>
+</ul>
+
+<a href="#gdpr-settings" id="gdpr-settings" style="color: inherit; text-decoration: none;">
+  <h3>GDPR settings</h3>
+</a>
+<p>Generally a modal (but can be whatever) in which the user has access to the following:</p>
+<ul>
+<li>A switch/checkbox to toggle the whole manager using <code>toggleManager</code></li>
+<li>A link/button to accept all and thus call <code>enableManager</code> and then <code>closeBanner</code></li>
+<li>A link/button to deny all and thus call <code>disableManager</code> and then <code>closeBanner</code></li>
+<li>A list/tree of groups and guards with ways to toggle them individually</li>
+<li>A button to cancel the modification of settings (which just closes the settings&#39; UI and goes back to the banner)</li>
+<li>A button to save the modifications and thus call <code>closeBanner</code></li>
+</ul>
+
+<a href="#the-hooks" id="the-hooks" style="color: inherit; text-decoration: none;">
+  <h2>The hooks</h2>
+</a>
+
+<a href="#creategdprguardhooksgdprsavior-gdprmanagerfactory" id="creategdprguardhooksgdprsavior-gdprmanagerfactory" style="color: inherit; text-decoration: none;">
+  <h3>createGdprGuardHooks(gdprSavior, gdprManagerFactory)</h3>
+</a>
+<p>The meta-hook that creates hooks, based on your manager and savior, that you can use throughout your app.</p>
+
+<a href="#usesetupgdpreffect" id="usesetupgdpreffect" style="color: inherit; text-decoration: none;">
+  <h3>useSetupGdprEffect()</h3>
+</a>
+<p><code>useSetupGdprEffect</code> is a simple hook that just bootstrap the whole library&#39;s core logic.
+As such, you must use it (preferably only in one place) within your app. To keep things simple
+and organized, you might want to call it within your <code>App</code> component.</p>
+
+<a href="#usegdprcomputedfactory-deps--" id="usegdprcomputedfactory-deps--" style="color: inherit; text-decoration: none;">
+  <h3>useGdprComputed(factory, deps = [])</h3>
+</a>
+<p>It behaves exactly like <code>useMemo</code> but recomputes its value upon changes within the GDPR manager.</p>
+
+<a href="#usegdprsavior" id="usegdprsavior" style="color: inherit; text-decoration: none;">
+  <h3>useGdprSavior()</h3>
+</a>
+<p>Gives you direct access to the wrapper around the <code>GdprSavior</code> instance you provided. This may not be needed, but is
+useful if you need to tap into the lifecycle of your GDPR manager.</p>
+
+<a href="#usegdprmanager" id="usegdprmanager" style="color: inherit; text-decoration: none;">
+  <h3>useGdprManager()</h3>
+</a>
+<p>Gives you direct access to the wrapper around the <code>GdprManager</code> instance that is restored using the provided <code>GdprSavior</code>.
+It allows you to query and mutate your manager&#39;s state directly even though there are different hooks for that exact purpose.</p>
+
+<a href="#useattachgdprlistenerseffectcallback" id="useattachgdprlistenerseffectcallback" style="color: inherit; text-decoration: none;">
+  <h3>useAttachGdprListenersEffect(callback)</h3>
+</a>
+<p>It allows you to attach events listeners to your manager&#39;s <code>GdprManagerEventHub</code>.
+This is where you&#39;ll listen for enable/disable events on particular guards.</p>
+
+<a href="#usegdprguardenabledstateguardname-usebannerstatus--false" id="usegdprguardenabledstateguardname-usebannerstatus--false" style="color: inherit; text-decoration: none;">
+  <h3>useGdprGuardEnabledState(guardName, useBannerStatus = false)</h3>
+</a>
+<p>It allows you to query the enabled state of the guard that has the given <code>guardName</code>.
+If <code>useBannerStatus</code>, and for the enable state to be true, the banner would have to have been shown to the user.</p>
+
+<a href="#usegdprguardguardname" id="usegdprguardguardname" style="color: inherit; text-decoration: none;">
+  <h3>useGdprGuard(guardName)</h3>
+</a>
+<p>It allows you to control a single guard and access its data:</p>
+<pre><code class="language-javascript"><span class="hl-1">const</span><span class="hl-2"> {</span><br/><span class="hl-2">    </span><span class="hl-6">guard</span><span class="hl-2">, </span><span class="hl-0">// instance of GdprGuardRaw</span><br/><span class="hl-2">    </span><span class="hl-6">enableGuard</span><span class="hl-2">, </span><span class="hl-0">// callback to enable that guard</span><br/><span class="hl-2">    </span><span class="hl-6">disableGuard</span><span class="hl-2">, </span><span class="hl-0">// callback to disable that guard</span><br/><span class="hl-2">    </span><span class="hl-6">toggleGuard</span><span class="hl-2">, </span><span class="hl-0">// callback to toggle that guard</span><br/><span class="hl-2">} = </span><span class="hl-3">useGdprGuard</span><span class="hl-2">(</span><span class="hl-7">&quot;My guard&#39;s name&quot;</span><span class="hl-2">);</span>
+</code></pre>
+<p>Note that this also applies to <code>GdprGroup</code>s since they are also <code>GdprGuard</code>s.</p>
+
+<a href="#usegdpr" id="usegdpr" style="color: inherit; text-decoration: none;">
+  <h3>useGdpr()</h3>
+</a>
+<p>It allows you to do and access a lot of things at once, so let&#39;s detail those:</p>
+<pre><code class="language-javascript"><span class="hl-1">const</span><span class="hl-2"> {</span><br/><span class="hl-2">    </span><span class="hl-6">bannerWasShown</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">manager</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">closeGdprBanner</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">resetAndShowBanner</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">enableManager</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">disableManager</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">toggleManager</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">enableGuard</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">disableGuard</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">toggleGuard</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">guardIsEnabled</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">enableForStorage</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">disableForStorage</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-6">toggleForStorage</span><span class="hl-2">,</span><br/><span class="hl-2">} = </span><span class="hl-3">useGdpr</span><span class="hl-2">();</span>
+</code></pre>
+
+<a href="#bannerwasshown" id="bannerwasshown" style="color: inherit; text-decoration: none;">
+  <h4>bannerWasShown</h4>
+</a>
+<p>Direct access to whether the GDPR banner has been shown or not (useful for conditional rendering of the banner itself).</p>
+
+<a href="#manager" id="manager" style="color: inherit; text-decoration: none;">
+  <h4>manager</h4>
+</a>
+<p>Direct access to the current state of the manager as a <code>GdprManagerRaw</code> instance.
+Useful to manually query the state or help build the UI.</p>
+
+<a href="#closegdprbanner" id="closegdprbanner" style="color: inherit; text-decoration: none;">
+  <h4>closeGdprBanner()</h4>
+</a>
+<p>When called will close the GDPR banner and call the appropriate event listeners.</p>
+
+<a href="#resetandshowbanner" id="resetandshowbanner" style="color: inherit; text-decoration: none;">
+  <h4>resetAndShowBanner()</h4>
+</a>
+<p>When called will reset the shown status of the GDPR banner.</p>
+
+<a href="#enablemanager" id="enablemanager" style="color: inherit; text-decoration: none;">
+  <h4>enableManager()</h4>
+</a>
+<p>When called will enable every guard within the manager (except required ones).
+Useful for the &quot;Accept All&quot; button of the GDPR banner.</p>
+
+<a href="#disablemanager" id="disablemanager" style="color: inherit; text-decoration: none;">
+  <h4>disableManager()</h4>
+</a>
+<p>When called will disable every guard within the manager (except required ones).
+Useful for the &quot;Reject All&quot; button of the GDPR banner.</p>
+
+<a href="#togglemanager" id="togglemanager" style="color: inherit; text-decoration: none;">
+  <h4>toggleManager()</h4>
+</a>
+<p>Toggle the enabled/disabled state of the manager and sets every guard to that state.
+Useful to have a global switch on the GDPR settings UI.</p>
+
+<a href="#enableguardguardname" id="enableguardguardname" style="color: inherit; text-decoration: none;">
+  <h4>enableGuard(guardName)</h4>
+</a>
+<p>Enable the guard that has the given name.
+Also works for groups of guards.
+Can be useful when building the GDPR settings UI.</p>
+
+<a href="#disableguardguardname" id="disableguardguardname" style="color: inherit; text-decoration: none;">
+  <h4>disableGuard(guardName)</h4>
+</a>
+<p>Disable the guard that has the given name.
+Also works for groups of guards.
+Can be useful when building the GDPR settings UI.</p>
+
+<a href="#toggleguardguardname" id="toggleguardguardname" style="color: inherit; text-decoration: none;">
+  <h4>toggleGuard(guardName)</h4>
+</a>
+<p>Toggle the guard that has the given name.
+Also works for groups of guards.
+Can be useful when building the GDPR settings UI.</p>
+
+<a href="#guardisenabledguardname-usebannerstatus--false" id="guardisenabledguardname-usebannerstatus--false" style="color: inherit; text-decoration: none;">
+  <h4>guardIsEnabled(guardName, useBannerStatus = false)</h4>
+</a>
+<p>Query the enabled state of the given guard. When using the banner status,
+the guard can only be considered if the banner has already been shown.</p>
+
+<a href="#enableforstoragestorage" id="enableforstoragestorage" style="color: inherit; text-decoration: none;">
+  <h4>enableForStorage(storage)</h4>
+</a>
+<p>Enable guards that are stored in the given <code>GdprStorage</code>.
+Can be useful when building the GDPR settings UI.</p>
+
+<a href="#disableforstoragestorage" id="disableforstoragestorage" style="color: inherit; text-decoration: none;">
+  <h4>disableForStorage(storage)</h4>
+</a>
+<p>Disable guards that are stored in the given <code>GdprStorage</code>.
+Can be useful when building the GDPR settings UI.</p>
+
+<a href="#toggleforstoragestorage" id="toggleforstoragestorage" style="color: inherit; text-decoration: none;">
+  <h4>toggleForStorage(storage)</h4>
+</a>
+<p>Toggle guards that are stored in the given <code>GdprStorage</code>.
+Can be useful when building the GDPR settings UI.</p>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Modules</a></li><li class=" tsd-kind-module"><a href="modules/ManagerWrapper.html">Manager<wbr/>Wrapper</a></li><li class=" tsd-kind-module"><a href="modules/SaviorWrapper.html">Savior<wbr/>Wrapper</a></li><li class=" tsd-kind-module"><a href="modules/index.html">index</a></li><li class=" tsd-kind-module"><a href="modules/typings.html">typings</a></li></ul></nav></div></div></div><footer class=""><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li><li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="overlay"></div><script src="assets/main.js"></script></body></html>
