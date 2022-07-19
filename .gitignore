@@ -8,7 +8,7 @@ docs/
 ## autogen
 node_modules/
 build/
-dist/
+#dist/
 tmp/
 .rpt2_cache
 .DS_Store
