@@ -1,0 +1,31 @@
+import type { GdprManager, GdprManagerRaw, GdprGuard, GdprGuardGroup, GdprStorage } from "gdpr-guard";
+import type { GdprManagerEventHub } from "gdpr-guard/dist/GdprManagerEventHub";
+import type { MethodNamesOf } from "./typings";
+export declare class ManagerWrapper {
+    protected _manager: GdprManager;
+    protected state: GdprManagerRaw;
+    constructor(_manager: GdprManager);
+    get manager(): GdprManager;
+    get materializedState(): GdprManagerRaw;
+    triggerUpdate(): void;
+    get bannerWasShown(): boolean;
+    get events(): GdprManagerEventHub;
+    closeBanner(): void;
+    resetAndShowBanner(): void;
+    json(): GdprManagerRaw;
+    toString(): string;
+    disable(target?: string): this;
+    enable(target?: string): this;
+    toggle(target?: string): this;
+    disableForStorage(storageType: GdprStorage): this;
+    enableForStorage(storageType: GdprStorage): this;
+    toggleForStorage(storageType: GdprStorage): this;
+    isEnabled(name: string): boolean;
+    hasGroup(groupName: string): boolean;
+    hasGuard(guardName: string): boolean;
+    getGroup(groupName: string): GdprGuardGroup | null;
+    getGuard(guardName: string): GdprGuard | null;
+    protected generateRawManager(): GdprManagerRaw;
+    hotswap(newManager: GdprManager): this;
+    protected wrap(method: MethodNamesOf<GdprGuard>, target?: string, ...args: unknown[]): this;
+}
