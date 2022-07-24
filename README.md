@@ -265,3 +265,13 @@ Can be useful when building the GDPR settings UI.
 
 Toggle guards that are stored in the given `GdprStorage`.
 Can be useful when building the GDPR settings UI.
+
+## CHANGELOG
+
+### v1.0.1 ***(broken do not use)***
+
+Fix library build
+
+### v1.0.0 ***(broken do not use)***
+
+Initial release
