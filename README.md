@@ -268,6 +268,10 @@ Can be useful when building the GDPR settings UI.
 
 ## CHANGELOG
 
+### v1.0.2
+
+Add manager hotswap on boot
+
 ### v1.0.1 ***(broken do not use)***
 
 Fix library build
