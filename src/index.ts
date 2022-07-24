@@ -60,10 +60,34 @@ export const createGdprGuardHooks = (
 
 	const saviorWrapper = new SaviorWrapper(savior, managerWrapper);
 
-	const useSetupGdprEffect: UseSetupGdprEffect = () => {
+	const useGdprSavior: UseGdprSavior = (): GdprSavior => saviorWrapper;
+
+	const useGdprManager: UseGdprManager = (): ManagerWrapper => managerWrapper;
+
+	/**
+	 * For internal uses only
+	 */
+	const useWrappedManager = () => {
+		const manager = useGdprManager();
+		return useMemo(() => manager.manager, [manager]);
+	};
+
+	const useSetupGdprEffect: UseSetupGdprEffect = (
+		onError = (e: unknown) => {}
+	) => {
+		const wrappedManager = useWrappedManager();
+
 		const restoreManagerOnBoot = useFunction(() => {
 			(async () => {
-				await saviorWrapper.restoreOrCreate(managerFactory);
+				try {
+					const manager = await saviorWrapper.restoreOrCreate(
+						managerFactory
+					);
+
+					managerWrapper.hotswap(manager);
+				} catch (e) {
+					onError(e);
+				}
 			})();
 		});
 
@@ -74,7 +98,7 @@ export const createGdprGuardHooks = (
 			if (managerWrapper.bannerWasShown) {
 				managerWrapper.closeBanner();
 			}
-		}, [managerWrapper.manager]);
+		}, [wrappedManager]);
 	};
 
 	const useGdprComputed: UseGdprComputed = <T>(
@@ -85,10 +109,6 @@ export const createGdprGuardHooks = (
 
 		return useMemo(fn, [managerWrapper.materializedState, fn]);
 	};
-
-	const useGdprSavior: UseGdprSavior = (): GdprSavior => saviorWrapper;
-
-	const useGdprManager: UseGdprManager = (): ManagerWrapper => managerWrapper;
 
 	const useAttachGdprListenersEffect: UseAttachGdprListenersEffect = (
 		callback: (eventHub: GdprManagerEventHub) => void
