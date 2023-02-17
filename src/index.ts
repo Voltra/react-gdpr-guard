@@ -1,15 +1,18 @@
-import { GdprManager, GdprManagerRaw } from "gdpr-guard";
-import { GdprManagerEventHub } from "gdpr-guard/dist/GdprManagerEventHub";
+import type {
+	GdprManagerFactory,
+	GdprManagerRaw,
+	GdprSavior,
+	GdprManagerEventHub,
+	GdprGuardRaw,
+	GdprStorage,
+} from "gdpr-guard";
+import { GdprManager } from "gdpr-guard";
 import { DependencyList, useRef, useCallback, useMemo, useEffect } from "react";
 
 import { createGlobalStore } from "./globalState";
 import { ManagerWrapper, ReactGdprGuardGlobalStore } from "./ManagerWrapper";
 import { SaviorWrapper } from "./SaviorWrapper";
 import type {
-	GdprSavior,
-	GdprGuardRaw,
-	GdprStorage,
-	GdprManagerFactory,
 	GdprGuardHooks,
 	UseGdpr,
 	UseSetupGdprEffect,
@@ -132,7 +135,7 @@ export const createGdprGuardHooks = (
 		const globalStore = useGlobalStore();
 		const fn = useFunction(factory, deps);
 
-		return useMemo(fn, [globalStore.materializedState, fn]);
+		return useMemo(fn, [globalStore, fn]);
 	};
 
 	const useAttachGdprListenersEffect: UseAttachGdprListenersEffect = (
