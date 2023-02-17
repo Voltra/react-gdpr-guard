@@ -1,4 +1,5 @@
-import type { GdprSavior, GdprManagerFactory, GdprGuardHooks } from "./typings";
+import type { GdprManagerFactory, GdprSavior } from "gdpr-guard";
+import type { GdprGuardHooks } from "./typings";
 /**
  * Create hooks for the gdpr-guard library based on the provided {@link GdprSavior}
  * @param savior - The {@link GdprSavior} to wrap

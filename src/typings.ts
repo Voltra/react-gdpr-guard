@@ -14,8 +14,6 @@ import type { DependencyList } from "react";
 
 import type { ManagerWrapper } from "./ManagerWrapper";
 
-export * from "gdpr-guard";
-
 export type MethodNamesOf<Class> = keyof {
 	[K in keyof Class as Class[K] extends (...args: any[]) => any
 		? K

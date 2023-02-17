@@ -4,8 +4,10 @@ export type StoreUpdater<Store> = (store: Store) => Store;
 
 export type EmitterSubscription<Store> = (store: Store) => void;
 
-export type StoreFactory<Store> = (
-	get: () => Store,
+export type StoreFactory<Store> = () => Store;
+
+export type InitialStoreFactory<Store> = (
+	get: StoreFactory<Store>,
 	set: (updater: StoreUpdater<Store>) => Store
 ) => Store;
 
@@ -30,9 +32,14 @@ const createEmitter = <Store>() => {
 	};
 };
 
+export type CreateGlobalStore<Store> = [
+	storeHolder: StoreHolder<Store>,
+	useStore: StoreFactory<Store>
+];
+
 export const createGlobalStore = <Store>(
-	initialStoreFactory: StoreFactory<Store>
-): [storeHolder: StoreHolder<Store>, useStore: () => Store] => {
+	initialStoreFactory: InitialStoreFactory<Store>
+): CreateGlobalStore<Store> => {
 	// create an emitter
 	const emitter = createEmitter<Store>();
 
@@ -48,20 +55,19 @@ export const createGlobalStore = <Store>(
 	};
 	storeHolder.store = initialStoreFactory(get, set);
 
-	return [
-		storeHolder,
-		() => {
-			// intitialize component with latest store
-			const [localStore, setLocalStore] = useState<Store>(get());
+	const useLocalStore = () => {
+		// intitialize component with latest store
+		const [localStore, setLocalStore] = useState<Store>(get());
 
-			// update our local store when the global
-			// store updates.
-			//
-			// emitter.subscribe returns a cleanup
-			// function, so react will clean this
-			// up on unmount.
-			useEffect(() => emitter.subscribe(setLocalStore), []);
-			return localStore;
-		},
-	];
+		// update our local store when the global
+		// store updates.
+		//
+		// emitter.subscribe returns a cleanup
+		// function, so react will clean this
+		// up on unmount.
+		useEffect(() => emitter.subscribe(setLocalStore), []);
+		return localStore;
+	};
+
+	return [storeHolder, useLocalStore];
 };
