@@ -4,28 +4,36 @@ import type {
 	GdprGuard,
 	GdprGuardGroup,
 	GdprStorage,
+	GdprManagerEventHub,
 } from "gdpr-guard";
-import type { GdprManagerEventHub } from "gdpr-guard/dist/GdprManagerEventHub";
 
 import type { MethodNamesOf } from "./typings";
+import { ArgumentsOf } from "./typings";
+import { StoreHolder } from "./globalState";
+
+export interface ReactGdprGuardGlobalStore {
+	materializedState: GdprManagerRaw;
+	update(manager: GdprManagerRaw): ReactGdprGuardGlobalStore;
+}
 
 export class ManagerWrapper {
-	protected state: GdprManagerRaw;
-
-	constructor(protected _manager: GdprManager) {
-		this.state = this.generateRawManager();
-	}
+	/* eslint-disable no-useless-constructor, no-empty-function */
+	constructor(
+		protected _manager: GdprManager,
+		protected _globalStoreHolder: StoreHolder<ReactGdprGuardGlobalStore>
+	) {}
+	/* eslint-enable no-useless-constructor, no-empty-function */
 
 	public get manager(): GdprManager {
 		return this._manager;
 	}
 
 	public get materializedState(): GdprManagerRaw {
-		return this.state;
+		return this._globalStoreHolder.store!.materializedState;
 	}
 
 	public triggerUpdate(): void {
-		this.state = this.generateRawManager();
+		this._globalStoreHolder.store!.update(this.generateRawManager());
 	}
 
 	public get bannerWasShown(): boolean {
@@ -111,24 +119,26 @@ export class ManagerWrapper {
 		return this;
 	}
 
-	protected wrap(
-		method: MethodNamesOf<GdprGuard>,
+	protected wrap<Method extends MethodNamesOf<GdprGuard>>(
+		method: Method,
 		target?: string,
-		...args: unknown[]
+		...args: ArgumentsOf<GdprGuard[Method]>
 	): this {
 		if (
 			typeof target === "undefined" &&
 			typeof this.manager[method] === "function"
 		) {
-			// False positive of TS2349
-			this.manager[method as unknown as string](...args);
+			// False positive of TS2349 or TS2684
+			// @ts-ignore
+			this.manager[method](...args);
 			this.triggerUpdate();
 		} else if (this.manager.hasGuard(target as string)) {
 			const guard = this.manager.getGuard(target as string);
 
 			if (typeof guard?.[method] === "function") {
-				// False positive of TS2349
-				guard?.[method as unknown as string](...args);
+				// False positive of TS2349 or TS2684
+				// @ts-ignore
+				guard?.[method](...args);
 				this.triggerUpdate();
 			}
 		}

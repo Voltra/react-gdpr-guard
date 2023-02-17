@@ -1,9 +1,14 @@
+/* eslint-disable unused-imports/no-unused-imports, no-unused-vars */
 import type {
 	GdprManagerRaw,
 	GdprSavior,
 	GdprGuardRaw,
 	GdprStorage,
+	GdprGuard,
+	GdprManager,
 } from "gdpr-guard";
+/* eslint-enable unused-imports/no-unused-imports, no-unused-vars */
+
 import type { GdprManagerEventHub } from "gdpr-guard/dist/GdprManagerEventHub";
 import type { DependencyList } from "react";
 
@@ -11,11 +16,17 @@ import type { ManagerWrapper } from "./ManagerWrapper";
 
 export * from "gdpr-guard";
 
-export type MethodsOf<Class> = {
-	[K in keyof Class]: K extends (...args: any) => any ? Class[K] : never;
+export type MethodNamesOf<Class> = keyof {
+	[K in keyof Class as Class[K] extends (...args: any[]) => any
+		? K
+		: never]: Class[K];
 };
 
-export type MethodNamesOf<Class> = keyof MethodsOf<Class>;
+export type ArgumentsOf<Fn> = Fn extends () => any
+	? readonly []
+	: Fn extends (arg: infer Arg, ...args: infer Args) => any
+	? readonly [arg: Arg, ...args: Args]
+	: never;
 
 export type UseSetupGdprEffect = () => void;
 
