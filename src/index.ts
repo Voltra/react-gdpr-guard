@@ -1,14 +1,18 @@
-import { GdprManager } from "gdpr-guard";
-import { GdprManagerEventHub } from "gdpr-guard/dist/GdprManagerEventHub";
-import { DependencyList, useRef, useCallback, useMemo, useEffect } from "react";
-
-import { ManagerWrapper } from "./ManagerWrapper";
-import { SaviorWrapper } from "./SaviorWrapper";
 import type {
+	GdprManagerFactory,
+	GdprManagerRaw,
 	GdprSavior,
+	GdprManagerEventHub,
 	GdprGuardRaw,
 	GdprStorage,
-	GdprManagerFactory,
+} from "gdpr-guard";
+import { GdprManager } from "gdpr-guard";
+import { DependencyList, useRef, useCallback, useMemo, useEffect } from "react";
+
+import { createGlobalStore } from "./globalState";
+import { ManagerWrapper, ReactGdprGuardGlobalStore } from "./ManagerWrapper";
+import { SaviorWrapper } from "./SaviorWrapper";
+import type {
 	GdprGuardHooks,
 	UseGdpr,
 	UseSetupGdprEffect,
@@ -55,8 +59,11 @@ const useEffectOnSecondRender = <Fn extends (...args: any[]) => any>(
  * Semantic wrapper around {@link useEffect} used to call a function when one of the dependency changes
  * regardless of whether that dependency is used in the function or not
  */
-// eslint-disable-next-line react-hooks/exhaustive-deps
-const watch = <Fn extends (...args: any[]) => any>(inputs: DependencyList, fn: Fn) => useEffect(fn, inputs);
+const watch = <Fn extends (...args: any[]) => any>(
+	inputs: DependencyList,
+	fn: Fn
+	// eslint-disable-next-line react-hooks/rules-of-hooks
+) => useEffect(fn, inputs);
 
 /**
  * Create hooks for the gdpr-guard library based on the provided {@link GdprSavior}
@@ -70,7 +77,15 @@ export const createGdprGuardHooks = (
 ): GdprGuardHooks => {
 	// Use a dummy manager that'll be hotswap later after init
 	const dummyManager = GdprManager.create([]);
-	const managerWrapper = new ManagerWrapper(dummyManager);
+	const [globalStoreHolder, useGlobalStore] =
+		createGlobalStore<ReactGdprGuardGlobalStore>((get, set) => ({
+			materializedState: dummyManager.raw(),
+			update: (manager: GdprManagerRaw) => {
+				return set(store => ({ ...store, materializedState: manager }));
+			},
+		}));
+
+	const managerWrapper = new ManagerWrapper(dummyManager, globalStoreHolder);
 
 	const saviorWrapper = new SaviorWrapper(savior, managerWrapper);
 
@@ -117,21 +132,21 @@ export const createGdprGuardHooks = (
 		factory: () => T,
 		deps: DependencyList = []
 	): T => {
-		const manager = useGdprManager();
+		const globalStore = useGlobalStore();
 		const fn = useFunction(factory, deps);
 
-		return useMemo(fn, [manager.materializedState, fn]);
+		return useMemo(fn, [globalStore, fn]);
 	};
 
 	const useAttachGdprListenersEffect: UseAttachGdprListenersEffect = (
-		callback: (eventHub: GdprManagerEventHub) => void
+		callback: (eventHub: GdprManagerEventHub, manager: GdprManager) => void
 	) => {
 		const wrappedManager = useWrappedManager();
 
-		useEffect(() => {
+		watch([callback, wrappedManager], () => {
 			const { events } = wrappedManager;
-			callback(events);
-		}, [callback, wrappedManager]);
+			callback(events, wrappedManager);
+		});
 	};
 
 	const useGdprGuardEnabledState: UseGdprGuardEnabledState = (
@@ -139,7 +154,8 @@ export const createGdprGuardHooks = (
 		useBannerStatus: boolean = false
 	) => {
 		return useGdprComputed(() => {
-			const bannerWasShown = !useBannerStatus || managerWrapper.bannerWasShown;
+			const bannerWasShown =
+				!useBannerStatus || managerWrapper.bannerWasShown;
 
 			return (
 				bannerWasShown &&
@@ -179,7 +195,10 @@ export const createGdprGuardHooks = (
 		const wrapper = useGdprManager();
 
 		// Manager
-		const manager = useGdprComputed(() => wrapper.materializedState, [wrapper, wrapper.materializedState]);
+		const manager = useGdprComputed(
+			() => wrapper.materializedState,
+			[wrapper, wrapper.materializedState]
+		);
 
 		const enableManager = useFunction(() => {
 			wrapper.enable();
@@ -194,42 +213,64 @@ export const createGdprGuardHooks = (
 		}, [wrapper]);
 
 		// Guard/group
-		const enableGuard = useFunction((guardName: string) => {
-			wrapper.enable(guardName);
-		}, [wrapper]);
+		const enableGuard = useFunction(
+			(guardName: string) => {
+				wrapper.enable(guardName);
+			},
+			[wrapper]
+		);
 
-		const disableGuard = useFunction((guardName: string) => {
-			wrapper.disable(guardName);
-		}, [wrapper]);
+		const disableGuard = useFunction(
+			(guardName: string) => {
+				wrapper.disable(guardName);
+			},
+			[wrapper]
+		);
 
-		const toggleGuard = useFunction((guardName: string) => {
-			wrapper.toggle(guardName);
-		}, [wrapper]);
+		const toggleGuard = useFunction(
+			(guardName: string) => {
+				wrapper.toggle(guardName);
+			},
+			[wrapper]
+		);
 
 		const guardIsEnabled = useFunction(
 			(guardName: string, useBannerStatus: boolean = false) => {
-				const bannerWasShown = !useBannerStatus || wrapper.bannerWasShown;
+				const bannerWasShown =
+					!useBannerStatus || wrapper.bannerWasShown;
 				return bannerWasShown && wrapper.isEnabled(guardName);
 			},
 			[wrapper]
 		);
 
 		// Storage
-		const enableForStorage = useFunction((storage: GdprStorage) => {
-			wrapper.enableForStorage(storage);
-		}, [wrapper]);
+		const enableForStorage = useFunction(
+			(storage: GdprStorage) => {
+				wrapper.enableForStorage(storage);
+			},
+			[wrapper]
+		);
 
-		const disableForStorage = useFunction((storage: GdprStorage) => {
-			wrapper.disableForStorage(storage);
-		}, [wrapper]);
+		const disableForStorage = useFunction(
+			(storage: GdprStorage) => {
+				wrapper.disableForStorage(storage);
+			},
+			[wrapper]
+		);
 
-		const toggleForStorage = useFunction((storage: GdprStorage) => {
-			wrapper.toggleForStorage(storage);
-		}, [wrapper]);
+		const toggleForStorage = useFunction(
+			(storage: GdprStorage) => {
+				wrapper.toggleForStorage(storage);
+			},
+			[wrapper]
+		);
 
-		const closeGdprBanner = useFunction(() => wrapper.closeBanner(), [wrapper]);
-		const resetAndShowBanner = useFunction(() =>
-			wrapper.resetAndShowBanner(),
+		const closeGdprBanner = useFunction(
+			() => wrapper.closeBanner(),
+			[wrapper]
+		);
+		const resetAndShowBanner = useFunction(
+			() => wrapper.resetAndShowBanner(),
 			[wrapper]
 		);
 		const bannerWasShown = useGdprComputed(
