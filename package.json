@@ -1,6 +1,6 @@
 {
 	"name": "react-gdpr-guard",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "Official React binding for gdpr-guard",
 	"keywords": [
 		"gdpr",
@@ -26,14 +26,15 @@
 		"node": ">=10"
 	},
 	"scripts": {
-		"build": "microbundle-crl --format modern,cjs,umd --name reactGdprGuard",
-		"start": "microbundle-crl watch --no-compress --format modern,cjs,umd --name reactGdprGuard",
+		"build": "microbundle --format modern,cjs,umd --name reactGdprGuard",
+		"start": "microbundle watch --no-compress --format modern,cjs,umd --name reactGdprGuard",
 		"prepare": "run-s build",
 		"test": "run-s test:unit test:lint test:build",
 		"test:build": "run-s build",
 		"test:lint": "eslint ./src/**/*.ts --fix",
 		"test:unit": "cross-env CI=1 react-scripts test --env=jsdom",
 		"test:watch": "react-scripts test --env=jsdom",
+		"lint:types": "tsc --noEmit -p .",
 		"predocs": "([[ -d ./docs ]] && rm -rf ./docs) || true",
 		"docs": "typedoc --options typedoc.config.js",
 		"predeploy:docs": "npm run docs",
@@ -52,8 +53,8 @@
 		"@types/node": "^12.20.33",
 		"@types/react": "^16.9.27",
 		"@types/react-dom": "^16.9.7",
-		"@typescript-eslint/eslint-plugin": "^5.15.0",
-		"@typescript-eslint/parser": "^5.15.0",
+		"@typescript-eslint/eslint-plugin": "^5.52.0",
+		"@typescript-eslint/parser": "^5.52.0",
 		"babel-eslint": "^10.0.3",
 		"cross-env": "^7.0.2",
 		"eslint": "^8.0.1",
@@ -71,16 +72,17 @@
 		"eslint-plugin-react-perf": "^3.3.0",
 		"eslint-plugin-standard": "^4.0.1",
 		"eslint-plugin-unused-imports": "^2.0.0",
-		"gh-pages": "^2.2.0",
-		"microbundle-crl": "^0.13.10",
+		"gh-pages": "^5.0.0",
+		"microbundle": "^0.15.1",
+		"microbundle-crl": "^0.13.11",
 		"npm-run-all": "^4.1.5",
 		"prettier": "^2.4.1",
 		"react": "^16.13.1",
 		"react-dom": "^16.13.1",
 		"react-scripts": "^5.0.0",
-		"typedoc": "^0.22.13",
+		"typedoc": "^0.23.25",
 		"typedoc-twilio-theme": "^1.0.1",
-		"typescript": "^4.6.0"
+		"typescript": "^4.9.5"
 	},
 	"dependencies": {
 		"gdpr-guard": "^2.3.0"
