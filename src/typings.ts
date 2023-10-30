@@ -26,10 +26,13 @@ export type ArgumentsOf<Fn> = Fn extends () => any
 	? readonly [arg: Arg, ...args: Args]
 	: never;
 
-export type UseSetupGdprEffect = () => void;
+export type UseSetupGdprEffect = (onError?: (e: unknown) => void) => void;
 
 export type UseAttachGdprListenersEffect = (
-	callback: (eventHub: GdprManagerEventHub) => void
+	callback: (
+		eventHub: GdprManagerEventHub,
+		manager: GdprManager
+	) => void | (() => void)
 ) => void;
 
 export type UseGdprComputed = <T>(factory: () => T, deps?: DependencyList) => T;

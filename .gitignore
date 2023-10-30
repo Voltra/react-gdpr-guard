@@ -4,6 +4,7 @@
 package-lock.json
 yarn.lock
 docs/
+playground/
 
 ## autogen
 node_modules/
