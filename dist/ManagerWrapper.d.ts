@@ -1,7 +1,7 @@
 import type { GdprManager, GdprManagerRaw, GdprGuard, GdprGuardGroup, GdprStorage, GdprManagerEventHub } from "gdpr-guard";
+import { StoreHolder } from "./globalState";
 import type { MethodNamesOf } from "./typings";
 import { ArgumentsOf } from "./typings";
-import { StoreHolder } from "./globalState";
 export interface ReactGdprGuardGlobalStore {
     materializedState: GdprManagerRaw;
     update(manager: GdprManagerRaw): ReactGdprGuardGlobalStore;

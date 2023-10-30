@@ -2,12 +2,18 @@ import type {
 	GdprManagerFactory,
 	GdprManagerRaw,
 	GdprSavior,
-	GdprManagerEventHub,
 	GdprGuardRaw,
 	GdprStorage,
 } from "gdpr-guard";
 import { GdprManager } from "gdpr-guard";
-import { DependencyList, useRef, useCallback, useMemo, useEffect } from "react";
+import {
+	DependencyList,
+	useRef,
+	useCallback,
+	useMemo,
+	useEffect,
+	useDebugValue, useState,
+} from "react";
 
 import { createGlobalStore } from "./globalState";
 import { ManagerWrapper, ReactGdprGuardGlobalStore } from "./ManagerWrapper";
@@ -23,17 +29,7 @@ import type {
 	UseGdprSavior,
 	UseAttachGdprListenersEffect,
 } from "./typings";
-
-/**
- * Semantic wrapper around {@link useCallback}
- */
-const useFunction = <Fn extends (...args: any[]) => any>(
-	fn: Fn,
-	deps: DependencyList = []
-): Fn => {
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	return useCallback(fn, deps);
-};
+import { glob } from "typedoc/dist/lib/utils/fs";
 
 /**
  * {@link useEffect} but that will only be triggered after one render/call attempt as already been made
@@ -52,18 +48,8 @@ const useEffectOnSecondRender = <Fn extends (...args: any[]) => any>(
 		didMount.current = true;
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [...deps, fn, didMount]);
+	}, [...deps, fn]);
 };
-
-/**
- * Semantic wrapper around {@link useEffect} used to call a function when one of the dependency changes
- * regardless of whether that dependency is used in the function or not
- */
-const watch = <Fn extends (...args: any[]) => any>(
-	inputs: DependencyList,
-	fn: Fn
-	// eslint-disable-next-line react-hooks/rules-of-hooks
-) => useEffect(fn, inputs);
 
 /**
  * Create hooks for the gdpr-guard library based on the provided {@link GdprSavior}
@@ -85,6 +71,8 @@ export const createGdprGuardHooks = (
 			},
 		}));
 
+	const [, useUnderlyingManager] = createGlobalStore(() => dummyManager);
+
 	const managerWrapper = new ManagerWrapper(dummyManager, globalStoreHolder);
 
 	const saviorWrapper = new SaviorWrapper(savior, managerWrapper);
@@ -96,15 +84,17 @@ export const createGdprGuardHooks = (
 	/**
 	 * For internal uses only
 	 */
-	const useWrappedManager = () => useGdprManager().manager;
+	const useWrappedManager = () => {
+		const [store] = useGlobalStore();
+		return useMemo(() => store.materializedState, [store]);
+	};
 
-	const useSetupGdprEffect: UseSetupGdprEffect = (
-		onError = (e: unknown) => {}
-	) => {
+	const useSetupGdprEffect: UseSetupGdprEffect = onError => {
 		const wrappingManager = useGdprManager();
-		const wrappedManager = useWrappedManager();
+		const [underlyingManager, setUnderlyingManager] = useUnderlyingManager();
+		const lastAutoClose = useRef<GdprManager|undefined>();
 
-		const restoreManagerOnBoot = useFunction(() => {
+		const restoreManagerOnBoot = useCallback(() => {
 			(async () => {
 				try {
 					const manager = await saviorWrapper.restoreOrCreate(
@@ -112,20 +102,24 @@ export const createGdprGuardHooks = (
 					);
 
 					wrappingManager.hotswap(manager);
+					setUnderlyingManager(manager);
 				} catch (e) {
-					onError(e);
+					onError?.(e);
 				}
 			})();
-		}, [wrappingManager]);
+
+			return () => {};
+		}, [onError, wrappingManager]);
 
 		useEffectOnSecondRender(restoreManagerOnBoot);
 
 		// Auto-close
-		watch([wrappedManager], () => {
-			if (wrappingManager.bannerWasShown) {
+		useEffect(() => {
+			if (lastAutoClose.current !== underlyingManager && wrappingManager.bannerWasShown) {
+				lastAutoClose.current =  wrappingManager.manager;
 				wrappingManager.closeBanner();
 			}
-		});
+		}, [underlyingManager, wrappingManager]);
 	};
 
 	const useGdprComputed: UseGdprComputed = <T>(
@@ -133,21 +127,19 @@ export const createGdprGuardHooks = (
 		deps: DependencyList = []
 	): T => {
 		const globalStore = useGlobalStore();
-		const fn = useFunction(factory, deps);
 
-		return useMemo(fn, [globalStore, fn]);
+		return useMemo(factory, [...deps, factory, globalStore /*, fn*/]);
 	};
 
-	const useAttachGdprListenersEffect: UseAttachGdprListenersEffect = (
-		callback: (eventHub: GdprManagerEventHub, manager: GdprManager) => void
-	) => {
-		const wrappedManager = useWrappedManager();
+	const useAttachGdprListenersEffect: UseAttachGdprListenersEffect =
+		callback => {
+			const manager = useGdprManager();
+			const [underlyingManager] = useUnderlyingManager();
 
-		watch([callback, wrappedManager], () => {
-			const { events } = wrappedManager;
-			callback(events, wrappedManager);
-		});
-	};
+			useEffect(() => {
+				return callback(manager.events, underlyingManager || manager.manager);
+			}, [callback, manager.events, manager.manager, underlyingManager]);
+		};
 
 	const useGdprGuardEnabledState: UseGdprGuardEnabledState = (
 		guardName: string,
@@ -171,17 +163,19 @@ export const createGdprGuardHooks = (
 			return manager.getGuard(guardName)?.raw();
 		}, [guardName, manager]) as GdprGuardRaw | null;
 
-		const enableGuard = useFunction(() => {
+		const enableGuard = useCallback(() => {
 			manager.enable(guardName);
 		}, [guardName, manager]);
 
-		const disableGuard = useFunction(() => {
+		const disableGuard = useCallback(() => {
 			manager.disable(guardName);
 		}, [guardName, manager]);
 
-		const toggleGuard = useFunction(() => {
+		const toggleGuard = useCallback(() => {
 			manager.toggle(guardName);
 		}, [guardName, manager]);
+
+		useDebugValue(guardName);
 
 		return {
 			guard,
@@ -200,41 +194,41 @@ export const createGdprGuardHooks = (
 			[wrapper, wrapper.materializedState]
 		);
 
-		const enableManager = useFunction(() => {
+		const enableManager = useCallback(() => {
 			wrapper.enable();
 		}, [wrapper]);
 
-		const disableManager = useFunction(() => {
+		const disableManager = useCallback(() => {
 			wrapper.disable();
 		}, [wrapper]);
 
-		const toggleManager = useFunction(() => {
+		const toggleManager = useCallback(() => {
 			wrapper.toggle();
 		}, [wrapper]);
 
 		// Guard/group
-		const enableGuard = useFunction(
+		const enableGuard = useCallback(
 			(guardName: string) => {
 				wrapper.enable(guardName);
 			},
 			[wrapper]
 		);
 
-		const disableGuard = useFunction(
+		const disableGuard = useCallback(
 			(guardName: string) => {
 				wrapper.disable(guardName);
 			},
 			[wrapper]
 		);
 
-		const toggleGuard = useFunction(
+		const toggleGuard = useCallback(
 			(guardName: string) => {
 				wrapper.toggle(guardName);
 			},
 			[wrapper]
 		);
 
-		const guardIsEnabled = useFunction(
+		const guardIsEnabled = useCallback(
 			(guardName: string, useBannerStatus: boolean = false) => {
 				const bannerWasShown =
 					!useBannerStatus || wrapper.bannerWasShown;
@@ -244,32 +238,32 @@ export const createGdprGuardHooks = (
 		);
 
 		// Storage
-		const enableForStorage = useFunction(
+		const enableForStorage = useCallback(
 			(storage: GdprStorage) => {
 				wrapper.enableForStorage(storage);
 			},
 			[wrapper]
 		);
 
-		const disableForStorage = useFunction(
+		const disableForStorage = useCallback(
 			(storage: GdprStorage) => {
 				wrapper.disableForStorage(storage);
 			},
 			[wrapper]
 		);
 
-		const toggleForStorage = useFunction(
+		const toggleForStorage = useCallback(
 			(storage: GdprStorage) => {
 				wrapper.toggleForStorage(storage);
 			},
 			[wrapper]
 		);
 
-		const closeGdprBanner = useFunction(
+		const closeGdprBanner = useCallback(
 			() => wrapper.closeBanner(),
 			[wrapper]
 		);
-		const resetAndShowBanner = useFunction(
+		const resetAndShowBanner = useCallback(
 			() => wrapper.resetAndShowBanner(),
 			[wrapper]
 		);
