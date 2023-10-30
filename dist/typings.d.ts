@@ -1,4 +1,4 @@
-import type { GdprManagerRaw, GdprSavior, GdprGuardRaw, GdprStorage } from "gdpr-guard";
+import type { GdprManagerRaw, GdprSavior, GdprGuardRaw, GdprStorage, GdprManager } from "gdpr-guard";
 import type { GdprManagerEventHub } from "gdpr-guard/dist/GdprManagerEventHub";
 import type { DependencyList } from "react";
 import type { ManagerWrapper } from "./ManagerWrapper";
@@ -6,8 +6,8 @@ export type MethodNamesOf<Class> = keyof {
     [K in keyof Class as Class[K] extends (...args: any[]) => any ? K : never]: Class[K];
 };
 export type ArgumentsOf<Fn> = Fn extends () => any ? readonly [] : Fn extends (arg: infer Arg, ...args: infer Args) => any ? readonly [arg: Arg, ...args: Args] : never;
-export type UseSetupGdprEffect = () => void;
-export type UseAttachGdprListenersEffect = (callback: (eventHub: GdprManagerEventHub) => void) => void;
+export type UseSetupGdprEffect = (onError?: (e: unknown) => void) => void;
+export type UseAttachGdprListenersEffect = (callback: (eventHub: GdprManagerEventHub, manager: GdprManager) => void | (() => void)) => void;
 export type UseGdprComputed = <T>(factory: () => T, deps?: DependencyList) => T;
 export type UseGdprSavior = () => GdprSavior;
 export type UseGdprManager = () => ManagerWrapper;
