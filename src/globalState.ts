@@ -1,10 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, SetStateAction, Dispatch } from "react";
 
 export type StoreUpdater<Store> = (store: Store) => Store;
 
 export type EmitterSubscription<Store> = (store: Store) => void;
 
+export type EmitterUnsubscriptionFunction = () => void;
+
 export type StoreFactory<Store> = () => Store;
+
+export type StoreHook<Store> = () => [
+	store: Store,
+	setStore: Dispatch<SetStateAction<Store>>
+];
 
 export type InitialStoreFactory<Store> = (
 	get: StoreFactory<Store>,
@@ -16,46 +23,39 @@ export interface StoreHolder<Store> {
 }
 
 // cf. https://formidable.com/blog/2021/stores-no-context-api/
-
-const createEmitter = <Store>() => {
-	const subscriptions = new Map<Symbol, EmitterSubscription<Store>>();
-	return {
-		emit: (store: Store) => subscriptions.forEach(fn => fn(store)),
-		subscribe: (fn: EmitterSubscription<Store>) => {
-			// eslint-disable-next-line symbol-description
-			const key = Symbol();
-			subscriptions.set(key, fn);
-			return function () {
-				subscriptions.delete(key);
-			};
-		},
-	};
-};
+// cf. https://blog.axlight.com/posts/steps-to-develop-global-state-for-react/
 
 export type CreateGlobalStore<Store> = [
 	storeHolder: StoreHolder<Store>,
-	useStore: StoreFactory<Store>
+	useStore: StoreHook<Store>
 ];
 
 export const createGlobalStore = <Store>(
 	initialStoreFactory: InitialStoreFactory<Store>
 ): CreateGlobalStore<Store> => {
-	// create an emitter
-	const emitter = createEmitter<Store>();
-
-	const storeHolder: StoreHolder<Store> = {
+	let storeHolder: StoreHolder<Store> = {
 		store: null,
 	};
+	const listeners = new Set<() => void>();
+
 	const get = () => storeHolder.store!;
 	const set = (updater: StoreUpdater<Store>) => {
 		storeHolder.store = updater(get());
-		// notify all subscriptions when the store updates
-		emitter.emit(storeHolder.store);
+		listeners.forEach(listener => listener());
 		return storeHolder.store;
 	};
+
 	storeHolder.store = initialStoreFactory(get, set);
 
-	const useLocalStore = () => {
+	const setGlobalStore = (nextStore: Store | ((prevStore: Store) => Store)) => {
+		if (typeof nextStore !== "function") {
+			nextStore = () => (nextStore as Store);
+		}
+
+		set(nextStore as (prevStore: Store) => Store);
+	};
+
+	const useLocalStore: StoreHook<Store> = () => {
 		// intitialize component with latest store
 		const [localStore, setLocalStore] = useState<Store>(get());
 
@@ -65,8 +65,18 @@ export const createGlobalStore = <Store>(
 		// emitter.subscribe returns a cleanup
 		// function, so react will clean this
 		// up on unmount.
-		useEffect(() => emitter.subscribe(setLocalStore), []);
-		return localStore;
+		useEffect(() => {
+			const listener = () => {
+				setLocalStore(get());
+			};
+
+			listeners.add(listener);
+			listener(); // in case it's already changed
+			return () => {
+				listeners.delete(listener);
+			};
+		}, []);
+		return [localStore, setGlobalStore];
 	};
 
 	return [storeHolder, useLocalStore];

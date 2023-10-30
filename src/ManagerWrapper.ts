@@ -7,9 +7,9 @@ import type {
 	GdprManagerEventHub,
 } from "gdpr-guard";
 
+import { StoreHolder } from "./globalState";
 import type { MethodNamesOf } from "./typings";
 import { ArgumentsOf } from "./typings";
-import { StoreHolder } from "./globalState";
 
 export interface ReactGdprGuardGlobalStore {
 	materializedState: GdprManagerRaw;
@@ -132,8 +132,8 @@ export class ManagerWrapper {
 			// @ts-ignore
 			this.manager[method](...args);
 			this.triggerUpdate();
-		} else if (this.manager.hasGuard(target as string)) {
-			const guard = this.manager.getGuard(target as string);
+		} else if (this.manager.hasGuard(target!)) {
+			const guard = this.manager.getGuard(target!);
 
 			if (typeof guard?.[method] === "function") {
 				// False positive of TS2349 or TS2684
