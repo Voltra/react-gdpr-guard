@@ -1,6 +1,5 @@
-import { GdprSaviorAdapter } from "gdpr-guard";
-import type { GdprSavior, GdprManager, GdprManagerFactory, GdprManagerRaw } from "gdpr-guard";
-import type { ManagerWrapper } from "./ManagerWrapper";
+import { GdprSavior, GdprManager, GdprManagerFactory, GdprManagerRaw, GdprSaviorAdapter } from "gdpr-guard";
+import { ManagerWrapper } from "./ManagerWrapper";
 export declare class SaviorWrapper extends GdprSaviorAdapter {
     protected savior: GdprSavior;
     protected managerWrapper: ManagerWrapper;
@@ -11,4 +10,5 @@ export declare class SaviorWrapper extends GdprSaviorAdapter {
     restore(shouldUpdate?: boolean): Promise<GdprManager | null>;
     restoreOrCreate(factory: GdprManagerFactory): Promise<GdprManager>;
     store(manager: GdprManagerRaw): Promise<boolean>;
+    decorate(manager: GdprManager): GdprManager;
 }

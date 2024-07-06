@@ -128,16 +128,14 @@ export class ManagerWrapper {
 			typeof target === "undefined" &&
 			typeof this.manager[method] === "function"
 		) {
-			// False positive of TS2349 or TS2684
-			// @ts-ignore
+			// @ts-expect-error False positive of TS2349 or TS2684
 			this.manager[method](...args);
 			this.triggerUpdate();
 		} else if (this.manager.hasGuard(target!)) {
 			const guard = this.manager.getGuard(target!);
 
 			if (typeof guard?.[method] === "function") {
-				// False positive of TS2349 or TS2684
-				// @ts-ignore
+				// @ts-expect-error False positive of TS2349 or TS2684
 				guard?.[method](...args);
 				this.triggerUpdate();
 			}

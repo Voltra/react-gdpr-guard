@@ -1,12 +1,12 @@
-import { GdprSaviorAdapter } from "gdpr-guard";
-import type {
+import {
 	GdprSavior,
 	GdprManager,
 	GdprManagerFactory,
 	GdprManagerRaw,
+	GdprSaviorAdapter,
 } from "gdpr-guard";
 
-import type { ManagerWrapper } from "./ManagerWrapper";
+import { ManagerWrapper } from "./ManagerWrapper";
 
 export class SaviorWrapper extends GdprSaviorAdapter {
 	constructor(
@@ -16,7 +16,9 @@ export class SaviorWrapper extends GdprSaviorAdapter {
 		super();
 	}
 
-	async updateSharedManager(manager: GdprManager): Promise<void> {
+	public override async updateSharedManager(
+		manager: GdprManager
+	): Promise<void> {
 		if (this.managerWrapper.manager === manager) return;
 
 		await this.savior.updateSharedManager(manager);
@@ -24,23 +26,31 @@ export class SaviorWrapper extends GdprSaviorAdapter {
 	}
 
 	/// Delegates
-	check() {
+	public override check() {
 		return this.savior.check();
 	}
 
-	exists(shouldUpdate = true) {
+	public override exists(shouldUpdate = true) {
 		return this.savior.exists(shouldUpdate);
 	}
 
-	restore(shouldUpdate = true) {
+	public override restore(shouldUpdate = true) {
 		return this.savior.restore(shouldUpdate);
 	}
 
-	restoreOrCreate(factory: GdprManagerFactory) {
+	public override restoreOrCreate(factory: GdprManagerFactory) {
 		return this.savior.restoreOrCreate(factory);
 	}
 
-	store(manager: GdprManagerRaw) {
+	public override store(manager: GdprManagerRaw) {
 		return this.savior.store(manager);
+	}
+
+	public override decorate(manager: GdprManager): GdprManager {
+		if (typeof this.savior.decorate !== "undefined") {
+			return this.savior.decorate(manager);
+		}
+
+		return super.decorate(manager);
 	}
 }

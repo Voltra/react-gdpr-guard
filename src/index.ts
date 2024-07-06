@@ -12,7 +12,7 @@ import {
 	useCallback,
 	useMemo,
 	useEffect,
-	useDebugValue, useState,
+	useDebugValue,
 } from "react";
 
 import { createGlobalStore } from "./globalState";
@@ -29,7 +29,6 @@ import type {
 	UseGdprSavior,
 	UseAttachGdprListenersEffect,
 } from "./typings";
-import { glob } from "typedoc/dist/lib/utils/fs";
 
 /**
  * {@link useEffect} but that will only be triggered after one render/call attempt as already been made

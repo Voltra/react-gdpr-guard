@@ -33,7 +33,7 @@ export type CreateGlobalStore<Store> = [
 export const createGlobalStore = <Store>(
 	initialStoreFactory: InitialStoreFactory<Store>
 ): CreateGlobalStore<Store> => {
-	let storeHolder: StoreHolder<Store> = {
+	const storeHolder: StoreHolder<Store> = {
 		store: null,
 	};
 	const listeners = new Set<() => void>();
@@ -47,9 +47,12 @@ export const createGlobalStore = <Store>(
 
 	storeHolder.store = initialStoreFactory(get, set);
 
-	const setGlobalStore = (nextStore: Store | ((prevStore: Store) => Store)) => {
+	const setGlobalStore = (
+		nextStore: Store | ((prevStore: Store) => Store)
+	) => {
 		if (typeof nextStore !== "function") {
-			nextStore = () => (nextStore as Store);
+			// eslint-disable-next-line no-param-reassign
+			nextStore = () => nextStore as Store;
 		}
 
 		set(nextStore as (prevStore: Store) => Store);
